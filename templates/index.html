@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AccidentEye</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <img src="/static/AccidentEye.jpg" alt="AccidentEye Logo" class="logo">
+        <h1>AccidentEye</h1>
+        <p class="description">An AI-powered system for accident detection from CCTV images.</p>
+        <div class="upload-box">
+            <input type="file" id="imageUpload" accept="image/*">
+            <div id="imagePreview"></div>
+            <button id="predictBtn">Predict</button>
+        </div>
+        <div id="loader">Predicting...</div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('imageUpload').addEventListener('change', function(event) {
+            const reader = new FileReader();
+            reader.onload = function() {
+                const imgElement = document.createElement('img');
+                imgElement.src = reader.result;
+                imgElement.classList.add('preview-img');
+                imgElement.style.maxWidth = '100%'; // Ensure image stays within bounds
+                imgElement.style.height = 'auto';
+                const previewDiv = document.getElementById('imagePreview');
+                previewDiv.innerHTML = '';
+                previewDiv.appendChild(imgElement);
+                document.getElementById('result').style.display = 'none'; // Hide previous prediction
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        });
+
+        document.getElementById('predictBtn').addEventListener('click', function() {
+            const fileInput = document.getElementById('imageUpload');
+            if (!fileInput.files.length) {
+                alert('Please upload an image first.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            
+            document.getElementById('loader').style.display = 'block'; // Show loader
+            document.getElementById('result').style.display = 'none';
+
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loader').style.display = 'none'; // Hide loader
+                document.getElementById('result').innerText = `Prediction: ${data.prediction}`;
+                document.getElementById('result').style.display = 'block'; // Show result
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('result').innerText = 'Error in prediction';
+                document.getElementById('result').style.display = 'block';
+            });
+        });
+    </script>
+</body>
+</html>
