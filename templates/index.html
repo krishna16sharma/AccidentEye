@@ -5,12 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AccidentEye</title>
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
+        <div class="navbar">
+            <a href="/" title="Image Detection"><i class="fas fa-image"></i></a>
+            <a href="/video" title="Video Detection"><i class="fas fa-video"></i></a>
+        </div>
         <img src="/static/AccidentEye.jpg" alt="AccidentEye Logo" class="logo">
         <h1>AccidentEye</h1>
         <p class="description">An AI-powered system for accident detection from CCTV images.</p>
+
+
         <div class="upload-box">
             <input type="file" id="imageUpload" accept="image/*">
             <div id="imagePreview"></div>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AccidentEye - Video Detection</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="navbar">
+            <a href="/" title="Image Detection"><i class="fas fa-image"></i></a>
+            <a href="/video" title="Video Detection"><i class="fas fa-video"></i></a>
+        </div>
+        <img src="/static/AccidentEye.jpg" alt="AccidentEye Logo" class="logo">
+        <h1>AccidentEye</h1>
+        <p class="description">An AI-powered system for accident detection from CCTV video footage.</p>
+
+        <div class="upload-box">
+            <input type="file" id="videoUpload" accept="video/*">
+            <video id="videoPlayer" controls style="max-width:100%; display:none;"></video>
+            <button id="analyzeBtn">Analyze</button>
+        </div>
+
+        <div id="loader" class="spinner" style="display:none;"></div>
+        <div id="videoResult"></div>
+    </div>
+
+    <script>
+        document.getElementById('videoUpload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            const videoPlayer = document.getElementById('videoPlayer');
+            const resultDiv = document.getElementById('videoResult');
+            resultDiv.innerText = '';
+
+            if (file) {
+                const videoURL = URL.createObjectURL(file);
+                videoPlayer.src = videoURL;
+                videoPlayer.style.display = 'block';
+            }
+        });
+
+        document.getElementById('analyzeBtn').addEventListener('click', function () {
+            const fileInput = document.getElementById('videoUpload');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Please upload a video.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('videoResult').innerText = '';
+
+            fetch('/process_video', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+            const loader = document.getElementById('loader');
+            const resultDiv = document.getElementById('videoResult');
+
+            loader.style.display = 'none';
+            resultDiv.style.display = 'block';
+
+            if (data.result === "Accident detected" && !isNaN(data.time)) {
+                resultDiv.innerHTML = `${data.result} at <strong>${data.time.toFixed(2)} seconds</strong>`;
+                
+                if (data.frame_path) {
+                    const frameImg = document.createElement('img');
+                    frameImg.src = data.frame_path + '?t=' + new Date().getTime();
+                    frameImg.alt = 'Accident Frame';
+                    frameImg.classList.add('preview-img');
+                    resultDiv.appendChild(document.createElement('br'));
+                    resultDiv.appendChild(frameImg);
+                }
+            } else {
+                resultDiv.innerHTML = `✅ ${data.result}`;
+            }
+        })
+
+            .catch(error => {
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('videoResult').innerText = 'Error processing video.';
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>
